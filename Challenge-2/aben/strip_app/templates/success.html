@@ -1,0 +1,20 @@
+{% extends 'base.html' %} {% block content %}
+<div
+  card="card"
+  style="
+    margin: 0 auto; /* Added */
+    float: none; /* Added */
+    margin-bottom: 10px;
+    margin-top: 90px;
+    width: 18rem;
+    background: linear-gradient(170deg, #b4ec51 0%, #429321 100%); ;
+  "
+>
+  <div class="card-body">
+    <p class="text-center">You have successfully subscribed!</p>
+    <p class="text-center">
+      <a href="{% url 'home' %}">Return to the dashboard</a>
+    </p>
+  </div>
+</div>
+{% endblock %}

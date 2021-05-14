@@ -1,0 +1,14 @@
+
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="card" style="width: 18rem;" >
+<div class="card-body">
+    <h4  class="card-title" style="text-align: center;"></h4>
+    <center>
+<p>You are logged out!</p>
+<a  href="{% url 'login' %}">signin</a></center>
+</div>
+</div>
+
+{% endblock %}

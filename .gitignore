@@ -1,0 +1,11 @@
+/.idea
+/code/htmlcov
+/code/public/static
+**/__pycache__
+.coverage
+.DS_Store
+.env
+.ropeproject
+*.pyc
+*.swp
+code/gunicorn.conf.py
