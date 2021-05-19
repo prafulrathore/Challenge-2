@@ -20,32 +20,29 @@ class StripeConfiguration(View):
 
 
 class CreateCheckoutSessionView(View):
-    def get(self, request, *args, **kwargs):
-        if request.method == 'GET':
-            domain_url = 'http://localhost:8000/'
-            stripe.api_key = settings.STRIPE_SECRET_KEY
-            try:
-                checkout_session = stripe.checkout.Session.create(
-                    client_reference_id=request.user.id if request.user.is_authenticated else None,
-                    success_url=domain_url +
-                    'success?session_id={CHECKOUT_SESSION_ID}',
-                    cancel_url=domain_url + 'cancel/',
-                    payment_method_types=['card'],
-                    mode='subscription',
-                    subscription_data={'trial_period_days': 7},
-                    line_items=[
-                        {
-                            'price': settings.STRIPE_PRICE_ID,
-                            'quantity': 1,
-                        }
-                    ],
+    def get(self, request):
+        domain_url = 'http://localhost:8000/'
+        try:
+            checkout_session = stripe.checkout.Session.create(
+                client_reference_id=request.user.id if request.user.is_authenticated else None,
+                success_url=domain_url +
+                'success?session_id={CHECKOUT_SESSION_ID}',
+                cancel_url=domain_url + 'cancel/',
+                payment_method_types=['card'],
+                mode='subscription',
+                subscription_data={'trial_period_days': 7},
+                line_items=[
+                    {
+                        'price': settings.STRIPE_PRICE_ID,
+                        'quantity': 1,
+                    }
+                ],
+            )
+            context = JsonResponse({'sessionId': checkout_session['id']})
 
-                )
-                context = JsonResponse({'sessionId': checkout_session['id']})
-
-            except Exception as e:
-                context = JsonResponse({'error': str(e)})
-            return HttpResponse(context)
+        except Exception as e:
+            context = JsonResponse({'error': str(e)})
+        return HttpResponse(context)
 
 
 class SuccessView(View):
@@ -94,7 +91,6 @@ class SubscriptionCancelView(View):
 
 class StripeWebhook(View):
     def get(self, request):
-        stripe.api_key = settings.STRIPE_SECRET_KEY
         endpoint_secret = settings.STRIPE_ENDPOINT_SECRET
         payload = request.body
         sig_header = request.META['HTTP_STRIPE_SIGNATURE']
