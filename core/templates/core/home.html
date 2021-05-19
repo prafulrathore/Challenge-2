@@ -1,0 +1,27 @@
+{% extends 'core/base.html' %} 
+{% load static %} 
+{% block content %}
+<!-- <header> -->
+  <div class="card" style="width: 22rem;">
+    <div class="text-center" style="color:white;background-color: black; height: 40px; padding-top: 6px;"><b>Plan</b></div>
+    <div class="card-body">
+        {% if subscription.plan.active == True %}
+        <h6>Your subscription:</h4><h5></h6>
+            <h4 class="card-title" style="color: #00c6f6">{{ product.name }}</h4>
+            <div class="card-text"><h5></h5>
+              {{ product.description }}
+            </div>
+          </div>
+        </div>
+        {% else %}
+        <h4> Aben Premium Membership</h4>
+        <div>7 days free trial after that you will have to pay $49.99 </div>
+        <button type="submit" class="btn btn-outline-info" style="margin-left: 95px; margin-top: 10px;" id="submitBtn">
+          Subscribe
+        </button>
+
+        {% endif %}
+    </div>
+  </div>
+<!-- </header> -->
+{% endblock %}

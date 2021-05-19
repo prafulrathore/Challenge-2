@@ -1,6 +1,4 @@
 /.idea
-/code/htmlcov
-/code/public/static
 **/__pycache__
 .coverage
 .DS_Store
@@ -9,3 +7,6 @@
 *.pyc
 *.swp
 code/gunicorn.conf.py
+db.sqlite3
+core/tests.py
+subscription/tests.py
