@@ -1,8 +1,7 @@
 from django.urls import path
 
-# from subscription.views import (SuccessView, CancelView, SubscriptionCancelView, StripeConfiguration,
-                                # CreateCheckoutSessionView, StripeWebhook)
 from subscription import views
+
 urlpatterns = [
     path('config/', views.StripeConfiguration.as_view(), name='config'),
     path('create-checkout-session/', views.CreateCheckoutSessionView.as_view(), name='create-checkout-session'),
