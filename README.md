@@ -1,5 +1,5 @@
 # Django-Stripe-Project
-This application contains Django framework and Stripe payment gateway in which user can do login , logout , signup  and subcription . User can see it's subscription plan is active or not, if user wants to cancel a subscription so they can do within trial period i.e. valid upto 7 days , after that user must have to pay $49.99.
+This application contains Django framework and Stripe payment gateway in which user can do login , logout , signup  and subcription . User can see its subscription plan is active or not, if user wants to cancel a subscription so they can do within trial period i.e. valid upto 7 days , after that user must have to pay $49.99.
 
 Technology Stack :
 
