@@ -3,8 +3,10 @@ import stripe
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
+from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import redirect, render
+from django.utils.decorators import method_decorator
 from django.views.generic import TemplateView, View
 
 from subscription.models import Customer, Product
@@ -13,6 +15,7 @@ stripe.api_key = settings.STRIPE_SECRET_KEY
 
 
 class StripeConfiguration(View):
+    @method_decorator(login_required)
     def get(self, request):
         stripe_config = {'publicKey': settings.STRIPE_PUBLISHABLE_KEY}
         context = JsonResponse(stripe_config, safe=False)
@@ -20,6 +23,7 @@ class StripeConfiguration(View):
 
 
 class CreateCheckoutSessionView(View):
+    @method_decorator(login_required)
     def get(self, request):
         domain_url = 'http://localhost:8000/'
         try:
@@ -50,22 +54,20 @@ class SuccessView(View):
         # Fetch session id
         session = stripe.checkout.Session.retrieve(request.GET['session_id'])
         # Get the user and create a new StripeCustomer
-        customer = Customer()
-        customer.user = request.user
-        customer.stripe_id = session.customer
-        customer.stripe_subscription_id = session.subscription
-        customer.save()
+        customer = Customer.objects.create(
+            user=request.user,
+            stripe_id=session.customer,
+            stripe_subscription_id=session.subscription)
         # Create a product
-        product = Product()
         subscription = stripe.Subscription.retrieve(
             customer.stripe_subscription_id)
         plan = stripe.Product.retrieve(subscription.plan.product)
-        product.name = plan.name
-        product.description = plan.description
-        product.price = subscription.plan.amount
-        product.currency = subscription.plan.currency
-        product.subscription_id = session.subscription
-        product.save()
+        product = Product.objects.create(name=plan.name,
+                                         description=plan.description,
+                                         price=subscription.plan.amount,
+                                         currency=subscription.plan.currency,
+                                         subscription_id=session.subscription
+                                         )
         return render(request, 'subscription/success.html')
 
 
@@ -75,15 +77,14 @@ class CancelView(TemplateView):
 
 class SubscriptionCancelView(View):
     def get(self, request):
-        if request.user.is_authenticated:
-            try:
-                sub_id = request.user.customer.stripe_subscription_id if Customer else ""
-                stripe.Subscription.delete(sub_id)
-                Customer.objects.filter(stripe_subscription_id=sub_id).delete()
-                Product.objects.filter(subscription_id=sub_id).delete()
-                message = "Your Subscription has been deleted !"
-            except Exception as e:
-                message = "Your subscription is not active !"
+        try:
+            sub_id = request.user.customer.stripe_subscription_id if request.user else ""
+            stripe.Subscription.delete(sub_id)
+            Customer.objects.filter(stripe_subscription_id=sub_id).delete()
+            Product.objects.filter(subscription_id=sub_id).delete()
+            message = "Your Subscription has been deleted !"
+        except Exception as e:
+            message = "Your subscription is not active !"
 
         context = {'message': message}
         return render(request, 'subscription/check_active_subscription.html', context=context)
