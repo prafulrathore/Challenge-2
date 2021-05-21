@@ -5,19 +5,15 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('subscription', '0007_auto_20210519_0737'),
-    ]
+    dependencies = [("subscription", "0007_auto_20210519_0737")]
 
     operations = [
         migrations.AddField(
-            model_name='product',
-            name='subscription_id',
-            field=models.CharField(default='', max_length=400),
+            model_name="product",
+            name="subscription_id",
+            field=models.CharField(default="", max_length=400),
         ),
         migrations.AlterField(
-            model_name='product',
-            name='price',
-            field=models.IntegerField(),
+            model_name="product", name="price", field=models.IntegerField()
         ),
     ]

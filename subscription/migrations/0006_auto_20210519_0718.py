@@ -5,18 +5,13 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('subscription', '0005_product_customer'),
-    ]
+    dependencies = [("subscription", "0005_product_customer")]
 
     operations = [
-        migrations.RemoveField(
-            model_name='product',
-            name='customer',
-        ),
+        migrations.RemoveField(model_name="product", name="customer"),
         migrations.AddField(
-            model_name='product',
-            name='currency',
-            field=models.CharField(default='', max_length=10),
+            model_name="product",
+            name="currency",
+            field=models.CharField(default="", max_length=10),
         ),
     ]

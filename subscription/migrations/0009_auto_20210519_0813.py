@@ -5,14 +5,10 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('subscription', '0008_auto_20210519_0757'),
-    ]
+    dependencies = [("subscription", "0008_auto_20210519_0757")]
 
     operations = [
         migrations.AlterField(
-            model_name='product',
-            name='price',
-            field=models.FloatField(),
-        ),
+            model_name="product", name="price", field=models.FloatField()
+        )
     ]

@@ -18,9 +18,9 @@ from django.urls import path, include
 
 urlpatterns = [
     # To the Admin Url
-    path('admin/', admin.site.urls),
+    path("admin/", admin.site.urls),
     # To the Core Url
-    path('', include('core.urls')),
+    path("", include("core.urls")),
     # To the Subscription Url
-    path('', include('subscription.urls'))
+    path("", include("subscription.urls")),
 ]
