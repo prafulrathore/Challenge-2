@@ -48,7 +48,7 @@ class CreateCheckoutSessionView(LoginRequiredMixin, View):
 
 class SuccessView(View):
     """
-    Get the Success checkout of the subscription.
+    Get the Success checkout for the subscription.
     """
 
     def get(self, request):
@@ -59,7 +59,7 @@ class SuccessView(View):
         # Get the Stripe Product
         plan = stripe.Product.retrieve(subscription.plan.product)
         try:
-            # Get the product if it's plan exist
+            # Get the product if its plan exist
             product = Product.objects.get(product_id=plan.id)
         except Product.DoesNotExist:
             # Create a product if doesn't exist
