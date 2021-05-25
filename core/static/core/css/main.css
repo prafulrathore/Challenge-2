@@ -6,3 +6,55 @@
   box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
   width: 18rem;
 }
+.card .btn.outline-info {
+  background: #687;
+  padding: 12px 22px;
+}
+.nav-color {
+  background-image: linear-gradient(
+    to right top,
+    #8faddc,
+    #00c6f6,
+    #00ddde,
+    #00eb92,
+    #a8eb12
+  );
+}
+.footer {
+  position: fixed;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  background-image: linear-gradient(
+    to right top,
+    #8faddc,
+    #00c6f6,
+    #00ddde,
+    #00eb92,
+    #a8eb12
+  );
+  text-align: center;
+}
+.plan {
+  height: 40px;
+  padding-top: 6px;
+  text-align: center;
+  color: white;
+  background-color: black;
+}
+.btn-outline-info {
+  margin-left: 95px;
+  margin-top: 10px;
+}
+.btn-outline-success {
+  margin-left: 38%;
+}
+.btn-outline-warning {
+  margin-left: 40%;
+  margin-top: 5px;
+}
+.btn-outline-primary {
+  margin-left: 50px;
+  margin-right: 50px;
+  margin-bottom: 10px;
+}

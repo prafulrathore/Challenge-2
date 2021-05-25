@@ -32,7 +32,7 @@ ALLOWED_HOSTS = []
 
 # Application definition
 
-INSTALLED_APPS = [
+Django_Apps = [
     # Django Apps/ modules
     "django.contrib.admin",
     "django.contrib.auth",
@@ -40,12 +40,22 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+]
+
+Package_Apps = [
     # Third party packages/modules
+    "rest_framework",
     "crispy_forms",
+]
+
+Custom_Apps = [
     # Project apps/ modules
     "core.apps.CoreConfig",
     "subscription.apps.SubscriptionConfig",
 ]
+
+# Install Apps
+INSTALLED_APPS = Django_Apps + Package_Apps + Custom_Apps
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
@@ -61,7 +71,7 @@ ROOT_URLCONF = "config.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [os.path.join(BASE_DIR, "templates")],
+        "DIRS": [os.path.join(BASE_DIR, "templates/")],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [

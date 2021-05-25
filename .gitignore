@@ -11,3 +11,4 @@ db.sqlite3
 core/tests.py
 subscription/tests.py
 .pre-commit-config.yaml
+reqirement.txt
