@@ -1,116 +1,145 @@
 import stripe
 
 from django.conf import settings
-from django.contrib.auth.decorators import login_required
-from django.contrib.auth.models import User
-from django.contrib.auth.decorators import login_required
-from django.http import HttpResponse, JsonResponse
-from django.shortcuts import redirect, render
-from django.utils.decorators import method_decorator
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.sites.shortcuts import get_current_site
+from django.http import JsonResponse, HttpResponse
+from django.shortcuts import render
 from django.views.generic import TemplateView, View
 
-from subscription.models import Customer, Product
+from rest_framework.views import APIView
+from rest_framework import status
+from rest_framework.response import Response
+
+from subscription.models import Subscription
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
 
 
-class StripeConfiguration(View):
-    @method_decorator(login_required)
+class StripeConfiguration(LoginRequiredMixin, View):
+    """
+    Get the sesssion id by stripe Publishable api key to identify user account
+    """
+
     def get(self, request):
-        stripe_config = {'publicKey': settings.STRIPE_PUBLISHABLE_KEY}
+        stripe_config = {"publicKey": settings.STRIPE_PUBLISHABLE_KEY}
         context = JsonResponse(stripe_config, safe=False)
         return HttpResponse(context)
 
 
-class CreateCheckoutSessionView(View):
-    @method_decorator(login_required)
-    def get(self, request):
-        domain_url = 'http://localhost:8000/'
+class CreateCheckoutSessionView(LoginRequiredMixin, APIView):
+    """
+    Create the checkout session for the subscription.
+    """
+
+    def get(self, request, format=None):
+        protocol = request.is_secure() and "https" or "http"
+        site = get_current_site(request)
+        domain_url = f"{protocol}://{site}/"
+        print(domain_url)
         try:
             checkout_session = stripe.checkout.Session.create(
-                client_reference_id=request.user.id if request.user.is_authenticated else None,
-                success_url=domain_url +
-                'success?session_id={CHECKOUT_SESSION_ID}',
-                cancel_url=domain_url + 'cancel/',
-                payment_method_types=['card'],
-                mode='subscription',
-                subscription_data={'trial_period_days': 7},
-                line_items=[
-                    {
-                        'price': settings.STRIPE_PRICE_ID,
-                        'quantity': 1,
-                    }
-                ],
+                client_reference_id=request.user.id,
+                success_url=domain_url + "success?session_id={CHECKOUT_SESSION_ID}",
+                cancel_url=domain_url + "cancel/",
+                payment_method_types=["card"],
+                mode="subscription",
+                subscription_data={"trial_period_days": 7},
+                line_items=[{"price": settings.STRIPE_PRICE_ID, "quantity": 1}],
             )
-            context = JsonResponse({'sessionId': checkout_session['id']})
+            context = {"sessionId": checkout_session["id"]}
 
         except Exception as e:
-            context = JsonResponse({'error': str(e)})
-        return HttpResponse(context)
+            context = {"error": str(e)}
+        return Response(context)
 
 
 class SuccessView(View):
+    """
+    Get the Success view if the subscription process have been completed.
+    """
+
     def get(self, request):
         # Fetch session id
-        session = stripe.checkout.Session.retrieve(request.GET['session_id'])
-        # Get the user and create a new StripeCustomer
-        customer = Customer.objects.create(
-            user=request.user,
-            stripe_id=session.customer,
-            stripe_subscription_id=session.subscription)
-        # Create a product
-        subscription = stripe.Subscription.retrieve(
-            customer.stripe_subscription_id)
+        session = stripe.checkout.Session.retrieve(request.GET["session_id"])
+        # Get the Stripe subscription
+        subscription = stripe.Subscription.retrieve(session.subscription)
+        # Get the Stripe Product
         plan = stripe.Product.retrieve(subscription.plan.product)
-        product = Product.objects.create(name=plan.name,
-                                         description=plan.description,
-                                         price=subscription.plan.amount,
-                                         currency=subscription.plan.currency,
-                                         subscription_id=session.subscription
-                                         )
-        return render(request, 'subscription/success.html')
+        # Get the user and create a new Customer
+        instance = Subscription.objects.create(
+            product_name=plan.name,
+            product_description=plan.description,
+            product_price=subscription.plan.amount,
+            product_currency=subscription.plan.currency,
+            product_id=plan.id,
+            user=request.user,
+            customer_id=session.customer,
+            subscription_id=session.subscription,
+        )
+        return render(request, "subscription/success.html")
 
 
 class CancelView(TemplateView):
+    """
+    Get the cancel checkout of the subscription.
+    """
+
     template_name = "subscription/cancel.html"
 
 
-class SubscriptionCancelView(View):
+class SubscriptionCancelView(LoginRequiredMixin, View):
+    """
+    Cancel the Subscription if the subscription has been done.
+    """
+
     def get(self, request):
         try:
-            sub_id = request.user.customer.stripe_subscription_id if request.user else ""
+            # Get the customer subscription id
+            sub_id = request.user.subscription.subscription_id if request.user else ""
+            # Delete the Subscription from the Stripe
             stripe.Subscription.delete(sub_id)
-            Customer.objects.filter(stripe_subscription_id=sub_id).delete()
-            Product.objects.filter(subscription_id=sub_id).delete()
+            # Delete the Customer instance
+            instance = Subscription.objects.get(subscription_id=sub_id)
+            instance.delete()
             message = "Your Subscription has been deleted !"
         except Exception as e:
             message = "Your subscription is not active !"
 
-        context = {'message': message}
-        return render(request, 'subscription/check_active_subscription.html', context=context)
+        context = {"message": message}
+        return render(
+            request, "subscription/check_active_subscription.html", context=context
+        )
 
 
-class StripeWebhook(View):
+class StripeWebhook(LoginRequiredMixin, APIView):
+    """
+    Get the trigger event that occurs in the subscription and update its details on stripe webhook.
+    """
+
     def get(self, request):
-        endpoint_secret = settings.STRIPE_ENDPOINT_SECRET
         payload = request.body
-        sig_header = request.META['HTTP_STRIPE_SIGNATURE']
-
+        sig_header = request.META["HTTP_STRIPE_SIGNATURE"]
         event = None
 
         try:
             event = stripe.Webhook.construct_event(
-                payload, sig_header,  endpoint_secret
+                payload, sig_header, settings.STRIPE_ENDPOINT_SECRET
             )
         except ValueError as e:
             # Invalid payload
-            return HttpResponse(status=400)
+            return Response(status=status.HTTP_400_BAD_REQUEST)
         except stripe.error.SignatureVerificationError as e:
             # Invalid signature
-            return HttpResponse(status=400)
+            return Response(status=status.HTTP_400_BAD_REQUEST)
         # Handle the checkout.session.completed event
-        if event['type'] == 'checkout.session.completed':
-            session = event['data']['object']
+        if event["type"] == "checkout.session.completed":
+            session = event["data"]["object"]
+            print(request.user.username + " just subscribed.")
 
-            return HttpResponse(status=200)
-        return HttpResponse(status=200)
+            return Response(status=status.HTTP_200_OK)
+        # Handle the customer.subscription.deleted event
+        if event["type"] == "customer.subscription.deleted":
+            print(request.user.username + "'s subscription deleted")
+            return Response(status=status.HTTP_200_OK)
+        return Response(status=status.HTTP_200_OK)

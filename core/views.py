@@ -1,32 +1,45 @@
 import stripe
 
 from django.conf import settings
-from django.shortcuts import render
-from django.views.generic import View
+from django.views.generic.base import TemplateView
 
-from subscription.models import Customer, Product
+from django_registration.backends.one_step.views import RegistrationView
+
+from subscription.models import Subscription
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
 
 
-class HomeView(View):
-    def get(self, request):
-        if not request.user.is_authenticated:
-            return render(request, 'core/home.html')
-        else:
-            try:
-                # Retrieve the subscription & product
-                customer = Customer.objects.get(user=request.user)
-                subscription = stripe.Subscription.retrieve(
-                    customer.stripe_subscription_id) if customer else ""
-                product = Product.objects.get(
-                    subscription_id=subscription.id) if subscription else ""
-            except Customer.DoesNotExist:
-                subscription = ""
-                product = ""
-            # Get the context
-            context = {
-                'subscription': subscription,
-                'product': product,
-            }
-            return render(request, 'core/home.html', context)
+class RegisterView(RegistrationView):
+    template_name = "core/django_registration/signup.html"
+    success_url = "complete"
+
+
+class RegistrationCompleteView(RegistrationView):
+    template_name = "core/django_registration/signup_complete.html"
+
+
+class HomeView(TemplateView):
+    template_name = "core/home.html"
+
+    def get_context_data(self, *args, **kwargs):
+        context = super(HomeView, self).get_context_data(*args, **kwargs)
+
+        try:
+            # Retrieve the customer, subscription & product
+            product = (
+                Subscription.objects.get(user=self.request.user)
+                if self.request.user
+                else None
+            )
+            subscription = (
+                stripe.Subscription.retrieve(product.subscription_id) if product else ""
+            )
+        except Subscription.DoesNotExist:
+            subscription = ""
+            product = ""
+        # Get the context
+        context["subscription"] = subscription
+        context["product"] = product
+
+        return context

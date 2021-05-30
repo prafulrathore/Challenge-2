@@ -17,10 +17,10 @@ from django.contrib import admin
 from django.urls import path, include
 
 urlpatterns = [
-    # To the Admin Url
-    path('admin/', admin.site.urls),
-    # To the Core Url
-    path('', include('core.urls')),
-    # To the Subscription Url
-    path('', include('subscription.urls'))
+    # Admin Urls
+    path("admin/", admin.site.urls),
+    # Core Urls
+    path("", include("core.urls")),
+    # Subscription Urls
+    path("", include("subscription.urls")),
 ]

@@ -5,14 +5,12 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('subscription', '0003_auto_20210518_1107'),
-    ]
+    dependencies = [("subscription", "0003_auto_20210518_1107")]
 
     operations = [
         migrations.AlterField(
-            model_name='customer',
-            name='stripe_subscription_id',
+            model_name="customer",
+            name="stripe_subscription_id",
             field=models.CharField(max_length=400),
-        ),
+        )
     ]
